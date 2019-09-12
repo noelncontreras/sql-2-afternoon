@@ -1,4 +1,13 @@
---PRACTICE JOINS
+-- SQL PRACTICE: JOINS, NESTED QUERIES, UPDATING ROWS,
+--GROUP BY, DISTINCT, AND FOREIGN KEYS
+    --JOINS: line 5,
+    --NESTED QUERIES: line 80,
+    --UPDATING ROWS: line 135,
+    --GROUP BY: line 173,
+    --DISTINCT: line 202,
+    --FOREIGN KEYS: line 258 (eCommerce Simulation)
+
+-- PRACTICE JOINS --
 
 --1.
 -- Get all invoices where the unit_price on the 
@@ -67,12 +76,12 @@ JOIN genre g
 ON t.genre_id = g.genre_id
 WHERE g.name = 'Alternative & Punk';
 
---BLACK DIAMOND
+-- BLACK DIAMOND --
 -- Get all tracks on the playlist(s) called Music and show their name, genre name, album name, 
     --and artist name.
         --At least 5 joins.
 
---PRACTICE NESTED QUERIES
+-- PRACTICE NESTED QUERIES --
 --Complete the instructions without using any joins. Only use nested queries to come up with the solution.
 
 --1.
@@ -126,7 +135,7 @@ WHERE artist_id IN
 FROM artist
 WHERE name = 'Queen'));
 
---PRACTICE UPDATING ROWS
+-- PRACTICE UPDATING ROWS --
 
 --1.
 -- Find all customers with fax numbers and set those numbers to null.
@@ -163,7 +172,7 @@ FROM genre
 WHERE name = 'Metal')
 AND composer IS NULL;
 
---GROUP BY
+-- GROUP BY --
 
 --1.
 -- Find a count of how many tracks there are per genre. Display the genre name with the count.
@@ -175,7 +184,179 @@ GROUP BY g.name;
 
 --2.
 -- Find a count of how many tracks are the "Pop" genre and how many tracks are the "Rock" genre.
-
+SELECT count(*), g.name
+FROM genre g
+JOIN track t
+ON g.genre_id = t.genre_id
+WHERE g.name = 'Pop'
+OR g.name = 'Rock'
+GROUP BY g.name;
 
 --3.
 -- Find a list of all artists and how many albums they have.
+SELECT ar.name, count(*)
+FROM artist ar
+JOIN album al
+ON ar.artist_id = al.artist_id
+GROUP BY ar.name;
+
+--USE DISTINCT
+
+--1.
+-- From the track table find a unique list of all composers.
+SELECT DISTINCT composer 
+FROM track;
+
+--2.
+-- From the invoice table find a unique list of all billing_postal_codes.
+SELECT DISTINCT billing_postal_code
+FROM invoice;
+
+--3.
+-- From the customer table find a unique list of all companys.
+SELECT DISTINCT company
+FROM customer;
+
+-- DELETE ROWS --
+--Always do a select before a delete to make sure you get back exactly what 
+    --you want and only what you want to delete! Since we cannot delete anything 
+    --from the pre-defined tables ( foreign key restraints ), use the following 
+    --SQL code to create a dummy table:
+
+--1.
+-- Copy, paste, and run the SQL code from the summary.
+CREATE TABLE practice_delete ( name TEXT, type TEXT, value INTEGER );
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'bronze', 50);
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'bronze', 50);
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'bronze', 50);
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'silver', 100);
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'silver', 100);
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'gold', 150);
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'gold', 150);
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'gold', 150);
+INSERT INTO practice_delete ( name, type, value ) VALUES ('delete', 'gold', 150);
+
+SELECT * FROM practice_delete;
+
+--2.
+-- Delete all 'bronze' entries from the table.
+DELETE FROM practice_delete
+WHERE type = 'bronze';
+
+--3.
+-- Delete all 'silver' entries from the table.
+DELETE FROM practice_delete
+WHERE type = 'silver';
+
+--4.
+-- Delete all entries whose value is equal to 150.
+DELETE 
+FROM practice_delete 
+WHERE value = 150;
+
+
+--eCOMMERCE SIMULATION - NO HINTS --
+-- Let's simulate an e-commerce site. We're going to need users, products, and orders.
+    -- users need a name and an email.
+    -- products need a name and a price
+    -- orders need a ref to product.
+    -- All 3 need primary keys.
+
+
+--1.
+-- Create 3 tables following the criteria in the summary.
+CREATE TABLE users (
+id SERIAL PRIMARY KEY,
+name VARCHAR(100),
+email VARCHAR(100)
+);
+
+CREATE TABLE products (
+product_id SERIAL PRIMARY KEY,
+name VARCHAR(255),
+price FLOAT
+);
+
+CREATE TABLE orders (
+order_id SERIAL PRIMARY KEY,
+product_id INTEGER,
+FOREIGN KEY(product_id) REFERENCES products(product_id)
+);
+
+--2.
+-- Add some data to fill up each table.
+    -- At least 3 users, 3 products, 3 orders.
+INSERT INTO users
+(name, email)
+VALUES
+('Mykenzie Rogers', 'mrodgers@devmtn.com'),
+('David Newman', 'dnewman@devmtn.com'),
+('Eric Sellors', 'esellors@devmtn.com');
+
+INSERT INTO products
+(name, price)
+VALUES
+('computer', 1999.99),
+('monitor', 499.99),
+('chair', 99.99);
+
+INSERT INTO orders
+(product_id)
+VALUES
+(1), (2), (3);
+
+--3.
+-- Run queries against your data.
+    -- Get all products for the first order.
+    -- Get all orders.
+    -- Get the total cost of an order ( sum the price of all products on an order ).
+SELECT * FROM orders
+WHERE order_id = 1;
+
+SELECT * FROM orders;
+
+SELECT  o.order_id, sum(p.price) 
+FROM orders o
+JOIN products p
+ON o.product_id = p.product_id
+WHERE o.order_id = 1
+GROUP BY o.order_id;
+
+--4.
+-- Add a foreign key reference from orders to users.
+ALTER TABLE users
+ADD COLUMN order_id INTEGER
+REFERENCES orders(order_id);
+
+--5.
+-- Update the orders table to link a user to each order.
+UPDATE users 
+SET order_id = user_id;
+
+--6.
+-- Run queries against your data.
+    -- Get all orders for a user.
+    -- Get how many orders each user has.
+-- SELECT * FROM users
+-- WHERE order_id = 1;
+SELECT *
+FROM users u
+JOIN orders o
+ON o.order_id = u.order_id
+WHERE u.user_id = 1;
+
+SELECT u.name, count(*) 
+FROM users u
+JOIN orders o
+ON o.order_id = u.order_id
+GROUP BY u.name;
+
+--BLACK DIAMOND--
+--Get the total amount on all orders for each user.
+SELECT u.name, sum(p.price)
+FROM products p
+JOIN orders o
+ON p.product_id = o.product_id
+JOIN users u
+ON o.order_id = u.order_id
+GROUP BY u.name;
