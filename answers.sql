@@ -266,7 +266,7 @@ WHERE value = 150;
 --1.
 -- Create 3 tables following the criteria in the summary.
 CREATE TABLE users (
-id SERIAL PRIMARY KEY,
+user_id SERIAL PRIMARY KEY,
 name VARCHAR(100),
 email VARCHAR(100)
 );
@@ -337,13 +337,11 @@ SET order_id = user_id;
 -- Run queries against your data.
     -- Get all orders for a user.
     -- Get how many orders each user has.
--- SELECT * FROM users
--- WHERE order_id = 1;
-SELECT *
+SELECT u.name, count(o.order_id)
 FROM users u
 JOIN orders o
 ON o.order_id = u.order_id
-WHERE u.user_id = 1;
+GROUP BY u.name;
 
 SELECT u.name, count(*) 
 FROM users u
